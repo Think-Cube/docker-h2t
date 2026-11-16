@@ -44,7 +44,7 @@ docker run --rm -v "$PWD/urls.txt:/opt/h2t/urls.txt:ro" ghcr.io/think-cube/h2t:2
 ## What is in the image
 
 - h2t from [gildasio/h2t](https://github.com/gildasio/h2t), built from commit `56e1447` and verified against that commit when the image is built
-- Python 3.14 on Alpine 3.24
+- Python on Alpine Linux, in the versions named on the `FROM` line of the `Dockerfile`
 - `requests` and `colorama`, pinned with hashes in `requirements.txt`, generated from `requirements.in`
 
 ## Verify an image
