@@ -1,129 +1,91 @@
-# h2t - HTTP Hardening Tool
+# docker-h2t
 
-## Description
+Container image for [h2t - HTTP Hardening Tool](https://github.com/gildasio/h2t), which checks a website's HTTP response headers and recommends security headers to add or remove.
 
-**h2t** this is a simple tool to help sysadmins to hardening their websites. App source we can find in <https://github.com/gildasio/h2t>
+Images are built for `linux/amd64` and `linux/arm64`, run as a non-root user and ship with an SBOM, build provenance and a keyless signature.
 
-### Prerequisites
+## Images
 
-- Docker installed on your machine
+Images are published to GitHub Container Registry as `ghcr.io/think-cube/h2t`.
 
-### Build and Run
+| Tag | Meaning | Changes? |
+|---|---|---|
+| `2.0.0` | Exact release | Never |
+| `2.0`, `2`, `latest` | Newest matching release | With each release |
+| `edge` | Newest build of `main` | With each merge and weekly rebuild |
+| `edge-YYYYMMDD` | Weekly rebuild of `main` with current OS patches | Never |
+| `sha-<commit>` | Build of one `main` commit | Never |
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/Think-Cube/DockerH2T.git
-   ```
-
-2. Build the Docker image:
-
-   ```bash
-   docker build -t dockerh2t .
-   ```
-
-3. Run the Docker container:
-
-   ```bash
-   docker run dockerh2t -h
-   ```
+For production, pin by digest: `ghcr.io/think-cube/h2t:2.0.0@sha256:...`.
 
 ## Usage
 
-**h2t** has subcommands: *list* and *scan*.
+h2t has two subcommands: `list` shows the header catalog and `scan` checks a website.
 
 ```bash
-$ docker run -it ghcr.io/think-cube/dockerh2t:latest -h
-usage: h2t.py [-h] {list,l,scan,s} ...
-
-h2t - HTTP Hardening Tool
-
-positional arguments:
-  {list,l,scan,s}  sub-command help
-    list (l)       show a list of available headers in h2t catalog (that can
-                   be used in scan subcommand -H option)
-    scan (s)       scan url to hardening headers
-
-optional arguments:
-  -h, --help       show this help message and exit
+docker run --rm ghcr.io/think-cube/h2t:2 scan https://example.com
+docker run --rm ghcr.io/think-cube/h2t:2 list -a -p description refs
 ```
 
-### List Subcommand
+Results are colored:
 
-The **list** subcommand lists all headers cataloged in **h2t** and can show informations about it as a description, links for more information and for how to's.
+- `[+]` in yellow: a good header the site does not use yet. Consider adding it.
+- `[-]` in red: a header that leaks information or weakens security. Consider removing it.
+- `[+]` in green: a good header the site already uses. Shown with `scan -s`.
+
+Use `scan -o csv` or `scan -o json` for machine-readable output, and `-h` on any subcommand for all options.
+
+To scan a list of URLs, mount a file with one URL per line:
 
 ```bash
-# docker run -it ghcr.io/think-cube/dockerh2t:latest list -h
-usage: h2t.py list [-h] [-p PRINT [PRINT ...]] [-B]
-                   [-a | -H HEADERS [HEADERS ...]]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -p PRINT [PRINT ...], --print PRINT [PRINT ...]
-                        a list of additional information about the headers to
-                        print. For now there are two options: description and
-                        refs (you can use either or both)
-  -B, --no-banner       don't print the h2t banner
-  -a, --all             list all available headers [default]
-  -H HEADERS [HEADERS ...], --headers HEADERS [HEADERS ...]
-                        a list of headers to look for in the h2t catalog
+docker run --rm -v "$PWD/urls.txt:/opt/h2t/urls.txt:ro" ghcr.io/think-cube/h2t:2 scan urls.txt
 ```
 
-### Scan Subcommand
+## What is in the image
 
-The **scan** subcommand perform a scan in a website looking for their headers.
+- h2t from [gildasio/h2t](https://github.com/gildasio/h2t), built from commit `56e1447` and verified against that commit when the image is built
+- Python 3.14 on Alpine 3.24
+- `requests` and `colorama`, pinned with hashes in `requirements.txt`, generated from `requirements.in`
+
+## Verify an image
+
+Check the signature:
 
 ```bash
-# docker run -it ghcr.io/think-cube/dockerh2t:latest scan -h
-usage: h2t.py scan [-h] [-v] [-a] [-g] [-b] [-H HEADERS [HEADERS ...]]
-                   [-p PRINT [PRINT ...]]
-                   [-i IGNORE_HEADERS [IGNORE_HEADERS ...]] [-B] [-E]
-                   [-o {normal,csv,json}] [-n] [-u USER_AGENT] [-k] [-r | -s]
-                   url
-
-positional arguments:
-  url                   url to look for
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -v, --verbose         increase output verbosity: -v print response headers,
-                        -vv print response and request headers
-  -a, --all             scan all cataloged headers [default]
-  -g, --good            scan good headers only
-  -b, --bad             scan bad headers only
-  -H HEADERS [HEADERS ...], --headers HEADERS [HEADERS ...]
-                        scan only these headers (see available in list sub-
-                        command)
-  -p PRINT [PRINT ...], --print PRINT [PRINT ...]
-                        a list of additional information about the headers to
-                        print. For now there are two options: description and
-                        refs (you can use either or both)
-  -i IGNORE_HEADERS [IGNORE_HEADERS ...], --ignore-headers IGNORE_HEADERS [IGNORE_HEADERS ...]
-                        a list of headers to ignore in the results
-  -B, --no-banner       don't print the h2t banner
-  -E, --no-explanation  don't print the h2t output explanation
-  -o {normal,csv,json}, --output {normal,csv,json}
-                        choose which output format to use (available: normal,
-                        csv, json)
-  -n, --no-redirect     don't follow http redirects
-  -u USER_AGENT, --user-agent USER_AGENT
-                        set user agent to scan request
-  -k, --insecure        don't verify SSL certificate as valid
-  -r, --recommendation  output only recommendations [default]
-  -s, --status          output actual status (eg: existent headers only)
+cosign verify ghcr.io/think-cube/h2t:2.0.0 \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github\.com/Think-Cube/workflows/\.github/workflows/container-image\.yml@refs/tags/v.+$'
 ```
 
-### Output
+Read the SBOM and provenance:
 
-For now the output is only in normal mode. Understant it as follows:
+```bash
+docker buildx imagetools inspect ghcr.io/think-cube/h2t:2.0.0 --format '{{ json .SBOM }}'
+docker buildx imagetools inspect ghcr.io/think-cube/h2t:2.0.0 --format '{{ json .Provenance }}'
+```
 
-- <span style="color:red;">[+]</span> Red Headers are bad headers that open a breach on your website or maybe show a lots of information. We recommend fix it.
-- <span style="color:yellow;">[+]</span> Yellow Headers are good headers that is not applied on your website. We recommend apply them.
-- <span style="color:green">[-]</span> Green Headers are good headers that is already used in your website. It's shown when use `-s` flag.
+## Build and test locally
+
+```bash
+docker build -t h2t:local .
+bash tests/smoke.sh h2t:local
+```
+
+To change a Python dependency, edit `requirements.in` and regenerate the lock file:
+
+```bash
+pip-compile --generate-hashes --output-file=requirements.txt requirements.in
+```
+
+To move to a newer h2t, change the commit in both places on the `ADD` line of the `Dockerfile`.
+
+## Support
+
+Only the newest release receives fixes. `main` is rebuilt every week, and images with fixable critical vulnerabilities are not published. Report security issues in the image through [GitHub private vulnerability reporting](https://github.com/Think-Cube/docker-h2t/security/advisories/new), and issues in h2t itself [upstream](https://github.com/gildasio/h2t/issues).
 
 ## License
 
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+The packaging in this repository is licensed under the [MIT License](LICENSE). h2t is licensed under the MIT License by Gildásio Júnior; its license is included in the image at `/opt/h2t/LICENSE`.
 
 ## Contribution
 
