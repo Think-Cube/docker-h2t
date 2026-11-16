@@ -11,17 +11,17 @@ Thank you for your interest in contributing!
 
 ## Dockerfile Guidelines
 
-- Base images must be pinned to a specific version (not `latest`).
+- Base images must be pinned by version and digest.
 - Minimize layers — combine related `RUN` commands.
 - Clean up package manager caches in the same `RUN` step.
-- Use `ARG` for version pins so they can be overridden at build time.
+- Pin Python packages with hashes in `requirements.txt`, generated from `requirements.in`.
 - Do not embed secrets, tokens, or credentials.
 
 ## Testing Locally
 
 ```bash
 docker build -t test-image .
-docker run --rm test-image
+bash tests/smoke.sh test-image
 ```
 
 ## Reporting Issues
