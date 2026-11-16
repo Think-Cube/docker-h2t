@@ -15,4 +15,4 @@ result=$(docker run --rm --entrypoint sh "$image" -c '
 ')
 echo "$result"
 grep -q ';recommended to remove;Server$' <<< "$result"
-grep -q ';recommended to use;Strict-Transport-Security$' <<< "$result"
+grep -q ';recommended to use;HTTP Strict Transport Security \[HSTS\]$' <<< "$result"
