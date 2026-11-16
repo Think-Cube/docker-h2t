@@ -1,4 +1,4 @@
-# Generated from requirements.in for Python 3.14 on Linux. Regenerate with:
+# Generated from requirements.in for Linux (x86_64 and aarch64). Regenerate with:
 #   pip-compile --generate-hashes --output-file=requirements.txt requirements.in
 
 certifi==2026.10.23 \
