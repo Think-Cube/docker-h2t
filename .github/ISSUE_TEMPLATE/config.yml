@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Discussion
-    url: https://github.com/Think-Cube/docker-h2t/discussions
-    about: General questions, ideas, and feedback
+  - name: h2t issues
+    url: https://github.com/gildasio/h2t/issues
+    about: Problems in h2t itself rather than in this image
