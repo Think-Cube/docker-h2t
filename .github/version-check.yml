@@ -1,0 +1,8 @@
+# Versions Dependabot does not track; checked weekly by .github/workflows/version-check.yml.
+checks:
+  - name: h2t
+    file: Dockerfile
+    pattern: 'h2t\.git#([0-9a-f]{40})'
+    source: github-commit
+    repository: gildasio/h2t
+    note: Update the commit in both places on the ADD line, then check that the patch for the list crash still applies or is no longer needed.
